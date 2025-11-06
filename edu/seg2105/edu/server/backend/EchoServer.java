@@ -72,13 +72,54 @@ public class EchoServer extends AbstractServer
       ("Server has stopped listening for connections.");
   }
   
-  protected void clientConnection(ConnectionToClient client) {
+  protected void clientConnected(ConnectionToClient client) {
 	  System.out.println("Client connected: "+ client);
   }
   
   synchronized protected void clientDisconnected (ConnectionToClient client) {
 	  System.out.println("Client disconnected: " + client);
 	  super.clientDisconnected(client);
+  }
+  
+  public void handleServerCommand(String cmnd) {
+	  try {
+		  if (cmnd.equals("#quit")) {
+			  close();
+			  System.out.println("Server quiting.");
+			  System.exit(0);
+			  
+		  } else if (cmnd.equals("#stop")) {
+			  stopListening();
+		      System.out.println("Stopped listening for new clients.");
+		      
+		  } else if (cmnd.equals("#close")) {
+			  close();
+			  System.out.println("Closed server and disconnected clients.");
+			  
+		  } else if (cmnd.startsWith("#setport")) {
+		      if (isListening() || getNumberOfClients() > 0) { System.out.println("Error: server must be closed."); return; }
+		      int p = Integer.parseInt(cmnd.substring(9).trim());
+		      setPort(p);
+		      System.out.println("Port set to " + getPort());
+			  
+		  } else if (cmnd.equals("#start")) {
+			  if (isListening()) {System.out.println("Already Listening."); return; }
+			  listen();
+			  
+		  } else if (cmnd.equals("#getport")) {
+			  System.out.println(getPort());
+			  
+		  } else {
+			  System.out.println("Unknown server command.");
+			  
+		  }
+		  
+	  } catch (Exception e) {
+		  
+		  System.out.println("Server command failed: " + e);
+		  
+	  }
+	  
   }
   
   
@@ -109,6 +150,8 @@ public class EchoServer extends AbstractServer
     try 
     {
       sv.listen(); //Start listening for connections
+      
+      new Thread(new ServerConsole(sv), "ServerConsole").start();
     } 
     catch (Exception ex) 
     {

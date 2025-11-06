@@ -72,6 +72,50 @@ public class ClientConsole implements ChatIF
   
   //Instance methods ************************************************
   
+  
+  
+  
+  private void handleCommand(String line) {
+	  try {
+		  if (line.equals("#quit")) {
+			  if (client.isConnected()) client.closeConnection();
+			  System.out.println("Client exiting.");
+			  System.exit(0);
+			  
+		  } else if (line.equals("#logoff")) {
+			  if (client.isConnected()) client.closeConnection();
+			  else System.out.println("Already logged off.");
+			  
+		  }else if (line.startsWith("#sethost ")) {
+		      if (client.isConnected()) { System.out.println("Error: must be logged off."); return; }
+		      client.setHost(line.substring(9).trim());
+		      System.out.println("Host set to " + client.getHost());
+		      
+		  } else if (line.startsWith("#setport ")) {
+			  if (client.isConnected()) { System.out.println("Error: must be logged off."); return; }
+			  int p = Integer.parseInt(line.substring(9).trim());
+			  client.setPort(p);
+			  System.out.println("Port set to " + client.getPort());
+
+		  } else if (line.equals("#login")) {
+			  if (client.isConnected()) { System.out.println("Error: already connected."); return;}
+			  client.openConnection();
+			  System.out.println("Logged in to " + client.getHost() + ":" + client.getPort());
+			  
+		  }else if (line.equals("#gethost")) {
+			  System.out.println(client.getHost());
+			  
+		  } else if (line.equals("#getport")) {
+			  System.out.println(client.getPort());
+			  
+		  }else {
+			  System.out.println("Unknown command.");
+			  
+		  }
+	  } catch (Exception e) {
+		  System.out.println("Command failed: " + e);
+	  }
+  }
   /**
    * This method waits for input from the console.  Once it is 
    * received, it sends it to the client's message handler.
@@ -86,7 +130,11 @@ public class ClientConsole implements ChatIF
       while (true) 
       {
         message = fromConsole.nextLine();
-        client.handleMessageFromClientUI(message);
+        if (message.startsWith("#")) {
+        	handleCommand(message);
+        } else {
+        	client.handleMessageFromClientUI(message);
+        }
       }
     } 
     catch (Exception ex) 
