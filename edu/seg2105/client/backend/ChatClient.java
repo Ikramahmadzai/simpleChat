@@ -21,12 +21,19 @@ import edu.seg2105.client.common.*;
 public class ChatClient extends AbstractClient
 {
   //Instance variables **********************************************
+	
+	
+
   
   /**
    * The interface type variable.  It allows the implementation of 
    * the display method in the client.
    */
-  ChatIF clientUI; 
+  ChatIF clientUI;
+  
+  
+  // log in id
+  private final String loginId;
 
   
   //Constructors ****************************************************
@@ -39,16 +46,25 @@ public class ChatClient extends AbstractClient
    * @param clientUI The interface type variable.
    */
   
-  public ChatClient(String host, int port, ChatIF clientUI) 
-    throws IOException 
-  {
+  public ChatClient(String host, int port, String loginId, ChatIF clientUI) throws IOException {
     super(host, port); //Call the superclass constructor
     this.clientUI = clientUI;
+    this.loginId = loginId;
     openConnection();
   }
 
   
   //Instance methods ************************************************
+  
+  protected void connectionEstablished() {
+	  try {
+		  sendToServer("#login " + loginId);
+		  
+	  }catch (IOException e) {
+		  System.out.println("Could not send login to server. Terminating client.");
+		  System.exit(1);
+	  }
+  }
     
   /**
    * This method handles all data that comes in from the server.
@@ -82,8 +98,7 @@ public class ChatClient extends AbstractClient
   }
   
   protected void connectionClosed() {
-	  System.out.println("Server has shut down. Connection is lost");
-	  System.exit(0);
+	  System.out.println("Server has shut down. Connection closed");
   }
   
   protected void connectionException(Exception exception) {

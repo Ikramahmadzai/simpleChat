@@ -45,11 +45,46 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
-  {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+  public void handleMessageFromClient(Object msg, ConnectionToClient client) {
+	  
+	  if (!(msg instanceof String)) return;
+
+	  String line = (String) msg;
+	  String login = (String) client.getInfo("loginId");
+
+	  try {
+	    if (line.startsWith("#login")) {
+	      if (login != null) {
+	        client.sendToClient("ERROR - Already logged in.");
+	        client.close();
+	        return;
+	      }
+	      String[] parts = line.split("\\s+", 2);
+	      if (parts.length < 2 || parts[1].trim().isEmpty()) {
+	        client.sendToClient("ERROR - Login id missing.");
+	        client.close();
+	        return;
+	      }
+	      String loginId = parts[1].trim();
+	      client.setInfo("loginId", loginId);
+	      System.out.println("Client logged in as: " + loginId + " (" + client + ")");
+	      return;
+	    }
+
+	    // any other message requires a prior login
+	    if (login == null) {
+	      client.sendToClient("ERROR - You must login first.");
+	      client.close();
+	      return;
+	    }
+
+	    // normal echo, prefixed by login id
+	    System.out.println("Message received from " + login + ": " + line + " (" + client + ")");
+	    this.sendToAllClients(login + "> " + line);
+
+	  } catch (Exception e) {
+	    System.out.println("Error handling client message: " + e);
+	  }
   }
     
   /**
@@ -96,7 +131,7 @@ public class EchoServer extends AbstractServer
 			  close();
 			  System.out.println("Closed server and disconnected clients.");
 			  
-		  } else if (cmnd.startsWith("#setport")) {
+		  } else if (cmnd.startsWith("#setport ")) {
 		      if (isListening() || getNumberOfClients() > 0) { System.out.println("Error: server must be closed."); return; }
 		      int p = Integer.parseInt(cmnd.substring(9).trim());
 		      setPort(p);
