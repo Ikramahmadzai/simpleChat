@@ -66,8 +66,10 @@ public class EchoServer extends AbstractServer
 	        return;
 	      }
 	      String loginId = parts[1].trim();
+	      System.out.println("Message received: #login " + loginId + " from null.");
 	      client.setInfo("loginId", loginId);
-	      System.out.println("Client logged in as: " + loginId + " (" + client + ")");
+	      System.out.println(loginId + " has logged on.");
+	      sendToAllClients(loginId + " has logged on.");
 	      return;
 	    }
 
@@ -78,9 +80,8 @@ public class EchoServer extends AbstractServer
 	      return;
 	    }
 
-	    // normal echo, prefixed by login id
-	    System.out.println("Message received from " + login + ": " + line + " (" + client + ")");
-	    this.sendToAllClients(login + "> " + line);
+	    System.out.println("Message received: " + line + " from " + login);
+	    sendToAllClients(login + "> " + line);
 
 	  } catch (Exception e) {
 	    System.out.println("Error handling client message: " + e);
@@ -108,7 +109,7 @@ public class EchoServer extends AbstractServer
   }
   
   protected void clientConnected(ConnectionToClient client) {
-	  System.out.println("Client connected: "+ client);
+	  System.out.println("A new client has connected to the server.");
   }
   
   synchronized protected void clientDisconnected (ConnectionToClient client) {
